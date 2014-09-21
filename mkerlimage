@@ -29,6 +29,8 @@ min_free_inodes=16384           # minimum # of free inodes left in new root fs
 # The end.
 #
 
+set -e
+
 if [ ! -d sys/mips/conf ]; then
     echo $0: must be run from a FreeBSD source tree root > /dev/stderr
     exit 1
@@ -125,7 +127,7 @@ mv ${rootdir}/boot/* /mnt
 umount /mnt
 
 makefs -f ${min_free_inodes} -B big -s 760m ${rootdir}.ufs ${rootdir}
-dd if=${rootdir}.ufs of=/dev/${md}s2a bs=1m
+dd if=${rootdir}.ufs of=/dev/${md}s2a bs=1m || true
 
 mdconfig -d -u ${md}
 xz -9f ${rootdir}.image
