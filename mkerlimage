@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Updated 2014 January 24, Nathan Dorfman <na@rtfm.net>
+# Updated 2014 September 21, Nathan Dorfman <na@rtfm.net>
 # Based on the mkoctimage script from Warner Losh.
 
 # This script will build a FreeBSD image for the Ubiquiti EdgeRouter Lite.
@@ -23,6 +23,7 @@ make_args='-DNO_CLEAN -j20'     # any args to buildworld/buildkernel
 kern_conf=ERL                   # kernel config to use, or create if not there
 skip_build=false                # true/false, don't run buildworld/buildkernel
 clean_up=true                   # true/false, delete temp root/UFS on success
+min_free_inodes=16384           # minimum # of free inodes left in new root fs
 
 #
 # The end.
@@ -123,7 +124,7 @@ mount -t msdosfs /dev/${md}s1 /mnt
 mv ${rootdir}/boot/* /mnt
 umount /mnt
 
-makefs -f 20% -B big -s 760m ${rootdir}.ufs ${rootdir}
+makefs -f ${min_free_inodes} -B big -s 760m ${rootdir}.ufs ${rootdir}
 dd if=${rootdir}.ufs of=/dev/${md}s2a bs=1m
 
 mdconfig -d -u ${md}
