@@ -3,7 +3,7 @@
 <html>
 <head>
   <title>
-    FreeBSD 10.0 on Ubiquiti EdgeRouter Lite
+    FreeBSD 10.x on Ubiquiti EdgeRouter Lite
   </title>
 
   <style type="text/css">
@@ -24,8 +24,16 @@
 <body>
 
 <h1>
-  FreeBSD 10.0 on Ubiquiti EdgeRouter Lite
+  FreeBSD 10.x on Ubiquiti EdgeRouter Lite
 </h1>
+
+<ul>
+  <li><strong style="color: red">Update 2014/09/21:</strong>
+    New version of the <a href="#build">build script</a> creates more inodes in
+    root filesystem. New, untested <a href="#images">images</a> available for
+    10.1-BETA2 r271931.
+  </li>
+</ul>
 
 <p>
   The Ubiquiti EdgeRouter Lite is a neat little device that costs less than
@@ -79,9 +87,18 @@
   AES in CBC mode to see a huge speedup over CTR. 
 </p>
 
-<h2>Image Files</h2>
+<h2><a name="images">Image Files</h2>
 
 <table>
+  <tr><td>2014/09/21</td>
+
+  <td><a href="images/freebsd-10.1-BETA2-r271931-ubiquiti-edgerouter-lite.image.xz"
+  >FreeBSD 10.1-BETA2-r271931</a>
+  <em style="color: red">untested</em>
+
+  <td><a href="images/freebsd-10.1-BETA2-r271931-ubiquiti-edgerouter-lite.sha512"
+  >SHA512</a></td></tr>
+
   <tr><td>2014/01/24</td>
 
   <td><a href="images/freebsd-10.0-RELEASE-ubiquiti-edgerouter-lite.image.xz"
@@ -90,13 +107,6 @@
   <td><a href="images/freebsd-10.0-RELEASE-ubiquiti-edgerouter-lite.sha512"
   >SHA512</a></td></tr>
 </table>
-
-<!--
-<p>
-  Debug builds run significantly slower and are only needed if you're trying
-  to debug system problems.
-</p>
--->
 
 <p>
   You can also easily <a href="#build">build your own</a> image from the
@@ -391,6 +401,16 @@ for system administration basics.
   Building Your Own
 </h2>
 
+<ul>
+ </li>
+   <em style="color: red">Update 2014/09/21:</em> the latest version here fixes
+   the problem of too few inodes, first spotted by Maximilian Pr&auml;ger. Also
+   available
+   <a href="https://github.com/ndorf/FreeBSD_ERL/commits/master/mkerlimage">via <code>git</code></a>
+   with change history.
+</li>
+</ul>
+
 <p>
   To build your own version from the FreeBSD sources, you will also need a
   computer running the same version of FreeBSD you wish to build. If your
@@ -403,7 +423,7 @@ for system administration basics.
 </p>
 
 <p>
-  Even if you use another OS, you can probably install FreeBSD 10.0 inside a
+  Even if you use another OS, you can probably install FreeBSD 10.x inside a
   virtual machine, and use it to build a version of itself for your EdgeRouter
   Lite. 
 </p>
