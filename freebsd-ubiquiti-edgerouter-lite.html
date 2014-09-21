@@ -1,0 +1,468 @@
+<!-- vim:et sw=2 ts=2 tw=79 si
+-->
+<html>
+<head>
+  <title>
+    FreeBSD 10.0 on Ubiquiti EdgeRouter Lite
+  </title>
+
+  <style type="text/css">
+    body { margin: 1.5em 10% 10% 5% }
+    h2 { margin-top: 1.5em }
+    ol, ul { margin-left: 5%; margin-right: 20% }
+    pre { margin-left: 5%; }
+    table { margin-left: 10% }
+    table td { padding: 0.5ex 1em }
+    table, table td {
+      margin-left: 10%;
+      border: 1px solid black;
+      border-spacing: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>
+  FreeBSD 10.0 on Ubiquiti EdgeRouter Lite
+</h1>
+
+<p>
+  The Ubiquiti EdgeRouter Lite is a neat little device that costs less than
+  US$100, has three Ethernet ports, and can run FreeBSD/mips. It's based on the
+  <a href="https://wiki.freebsd.org/FreeBSD/mips/Octeon">Cavium Octeon</a>
+  CN5020 platform and features a dual core 500mhz MIPS64 processor, 512MB RAM,
+  and 4GB storage on removable USB.
+</p>
+
+<p align="center">
+  <img src="erl-on.jpg"/>
+  <br>
+  <font size="-2">
+    The EdgeRouter Lite in the foreground, near a Netgear WNDR3700 and a bulky
+    ISP-provided cablemodem.
+  </font>
+</p>
+
+<p>
+  This page provides ready-to-use images of FreeBSD 10.0-RELEASE. Thanks to the
+  open nature of the EdgeRouter Lite, it's very easy to install and use these
+  images; just follow the instructions below. Thanks to the fine folks at the
+  FreeBSD Project, building your own is almost as easy. A script to build them,
+  along with instructions, is also provided. Special thanks is due to Juli
+  Mallett and Warner Losh, without whose hard work and generous assistance none
+  of this would be possible.
+</p>
+
+<p>
+  <b>Note that this is experimental software which comes with no warranty of
+  any kind.</b> These builds are works in progress and are not fit or suitable
+  for any purpose whatsoever. By proceeding you assume all risks.
+</p>
+
+<p>
+  On my EdgeRouter Lite, the builds provided below are stable and pretty much
+  fully functional. There are two outstanding issues:
+</p>
+
+<ol>
+  <li>Performance could be a little better, though it's more than adequate for
+  my home Internet connection. Basic packet passing between two Gigabit hosts
+  seems to top out at about 250Mbits/sec.
+
+  <li>There is currently no way to pass boot options (such as single-user mode)
+  to the kernel from U-Boot.</li>
+</ol>
+
+<p>
+  Hardware crypto acceleration via <code>/dev/crypto</code> seems to work. Use
+  AES in CBC mode to see a huge speedup over CTR. 
+</p>
+
+<h2>Image Files</h2>
+
+<table>
+  <tr><td>2014/01/24</td>
+
+  <td><a href="images/freebsd-10.0-RELEASE-ubiquiti-edgerouter-lite.image.xz"
+  >FreeBSD 10.0-RELEASE r261039</a></td>
+
+  <td><a href="images/freebsd-10.0-RELEASE-ubiquiti-edgerouter-lite.sha512"
+  >SHA512</a></td></tr>
+</table>
+
+<!--
+<p>
+  Debug builds run significantly slower and are only needed if you're trying
+  to debug system problems.
+</p>
+-->
+
+<p>
+  You can also easily <a href="#build">build your own</a> image from the
+  FreeBSD sources using the provided <code>mkerlimage</code> script, then
+  return here to continue with installation.
+</p>
+
+<h2>
+  <a name="install"/>
+  Getting Started
+  </h2>
+
+<p>
+  All you need are the following:
+</p>
+
+<ol>
+  <li>a computer with a USB port</li>
+
+  <li><a href="http://www.amazon.com/EdgeRouter-ERLite-3-512MB-Ethernet-Router/dp/B00CPRVF5K">
+  the device</a></li>
+
+  <li><a href="http://www.amazon.com/gp/product/B000GL3MOY/ref=oh_details_o00_s01_i00?ie=UTF8&psc=1">
+  an RJ-45 serial console cable</a></li>
+
+  <li>unless your computer already has a 9-pin serial port,
+  <a href="http://www.amazon.com/gp/product/B0007OWNYA/ref=wms_ohs_product?ie=UTF8&psc=1">
+  a USB-to-DB9 adapter</a>
+
+  <p>
+    and last but certainly not least,
+  </p>
+
+  <li>a Phillips-head screwdriver.</li>
+</ol>
+
+<p>
+  The EdgeRouter's Lite on-board storage is a removable USB drive. Installing
+  the image is just a matter of opening the device, taking the drive out,
+  writing the image to it, and putting it back in.
+</p>
+
+<p align="center">
+  <img src="erl-open.jpg"/>
+  <br>
+  <font size="-2">
+    The EdgeRouter Lite with the cover removed. Inside is just a board. The
+    removable USB storage is on the right.
+  </font>
+</p>
+
+<p>
+  Configuring the bootloader afterwards only takes a minute, and then you're
+  done. If you haven't already set up a serial console for your device, though,
+  you'll need to do that first.
+</p>
+
+<h2>
+  Serial Console
+</h2>
+
+<p>
+  You may wish to <a href="#install2">skip to the next section</a> if you
+  already have a working connection to the serial console of your EdgeRouter
+  Lite.
+</p>
+
+<p>
+  The serial console allows you to interact with the device's firmware before
+  boot, which you will need to do to configure it to boot FreeBSD. Since you'll
+  need it anyway, the provided images don't enable the ssh server by default,
+  and you'll log into your new FreeBSD system for the first time this way, as
+  well.
+</p>
+
+<p>
+  First, connect the RJ-45 console cable to the port marked "Console" on the
+  device.  Connect the other end to a 9-pin serial port on your computer if you
+  have one; otherwise connect it to a USB-to-DB9 adapter, and connect that to a
+  USB port on your computer.
+</p>
+
+<p>
+  Next, you will need any serial communication software. On FreeBSD and Linux
+  systems, you can install <code>minicom</code> by entering one of the
+  following commands:
+</p>
+
+<table>
+  <tr><td><b>System</b></td>                <td><b>Command</b></td></tr>
+  <tr><td>FreeBSD 10.x</td>                 <td><code>pkg install minicom</code></td>
+  <tr><td>FreeBSD 9.x</td>                  <td><code>pkg_add -r minicom</code></td>
+  <tr><td>Debian, Ubuntu, Mint, etc.</td>   <td><code>apt-get install minicom</code></td>
+  <tr><td>Fedora, CentOS, RHEL, etc.</td>   <td><code>yum install minicom</code></td>
+</table>
+
+<p>
+  On other Unix-like systems, you can try building
+  <a href="http://freecode.com/projects/minicom">minicom from source</a>. On
+  MacOS you can do that or try to install it from Fink. On Windows you're on
+  your own; try <a href="http://realterm.sourceforge.net/">RealTerm</a>.
+</p>
+
+<p>
+  Determine the name of the serial port you're using. On FreeBSD systems, USB
+  serial adapters will have names like <code>/dev/ttyU0</code> and hard-wired
+  serial ports, <code>/dev/ttyu0</code> with a lowercase 'u.' On Linux systems,
+  the equivalent files are <code>/dev/ttyUSB0</code> and
+  <code>/dev/ttyS0</code>, respectively. If you have more than one, the number
+  might be greater than '0.' On Windows, it's usually called <code>COM1</code>,
+  otherwise <code>COM2</code>, <code>COM3</code>, and so on. On MacOS, it might
+  be <code>/dev/cu.usbserial</code>; look for other <code>/dev/cu.*</code>
+  files if not.
+</p>
+
+<p>
+  Configure the software to use the port, with settings 115200 8N1 and no flow
+  control. Those are usually close to the defaults, but it's important to get
+  them right as accidentally leaving flow control enabled or another error
+  could leave you with a partially or not at all working connection. To
+  configure minicom, enter the command <code>minicom -s</code> as root, then
+  navigate to the "Serial Port Setup" menu.
+</p>
+
+<p>
+  Start the software and plug power into the device. You should see the EdgeOS
+  Linux kernel boot and ultimately present you with a login prompt. If your
+  device was already powered on, just hit the Enter key once or twice to get
+  a new login prompt. Type something at the login prompt to verify that your
+  connection is working properly. For example, you can log into EdgeOS (the
+  default user and password are both <code>ubnt</code>) and run the
+  <code>halt</code> command to shut it down and prepare for installing FreeBSD.
+</code>
+
+<h2>
+  <a name="install2"/>
+  Installation
+</h2>
+
+<p>
+  Unplug the device completely and open the plastic case by removing all the
+  screws. Notice the lone USB port containing a removable drive on one end of
+  the board. You can use your fingers to take the drive out, but it's a little
+  slippery, so you might need to use your shirt for grip. It turns out there's
+  a benefit to wearing shirts around the house, after all.
+</p>
+
+<p>
+  Plug the drive into your computer. For FreeBSD, Linux and other Unix-like
+  systems, the command to write the image to the drive is below. You'll need to
+  download <a href="http://tukaani.org/xz/">the <code>xz</code> software</a>
+  for MacOS or if it's otherwise not installed. On Windows, which doesn't have
+  <code>dd</code>, you're on your own; try the
+  <a href="https://launchpad.net/win32-image-writer">Ubuntu Image Writer</a>
+  (you'll also have to download <code>xz</code>).
+</p>
+
+<p>
+  Determine the device name assigned by your system. On FreeBSD, it will be
+  something like <code>/dev/da3</code>, where the '3' will be the first
+  available number after all your other SCSI and USB drives. On Linux, 
+  it will be something like <code>/dev/sdf</code>, where the 'f' will be the
+  first available letter after all your other ATA, SCSI and USB drives. On
+  MacOS, it will be something like <code>/dev/rdisk1</code>. 
+</p>
+
+<p>
+  Ensure it wasn't mounted automatically, by substituting your device name in
+  the following commands and running them as root:
+</p>
+
+<pre>
+mount | grep '^/dev/<i>devicename</i>' | awk '{print $1}' | xargs -n1 umount
+mount | grep '^/dev/<i>devicename</i>'
+</pre>
+
+<p>
+  If these commands produce no output, and you're certain you have the device
+  name correct, proceed with the following command as root, substituting your
+  device name and the filename of the image you downloaded or built.
+
+  <b>Warning: a simple typo in the device name can wipe out your system's boot
+  partition.  Check carefully before hitting the enter key.</b>
+</p>
+
+<pre>
+  xzcat freebsd-ubiquiti-edgerouter-lite.debug.image.xz | dd of=/dev/<i>devicename</i> bs=1024k
+</pre>
+
+</p>
+  This will take a few minutes. When finished, remove the drive and put it back
+  into the EdgeRouter Lite. Reconnect the console cable, ensure your terminal
+  software is running, and plug power into the device.
+</p>
+
+<h2>
+  Configuring U-Boot
+</h2>
+
+<p>
+  The first time you power up the device with the new image, the bootloader
+  won't know what to do and will drop you to a prompt. Enter these commands to
+  save the command sequence needed to boot FreeBSD to a variable
+  (<code>boot_freebsd</code> in this example):
+</p>
+
+<pre>
+  setenv boot_freebsd 'fatload usb 0 $loadaddr kernel/kernel ; bootoctlinux $loadaddr coremask=0x3'
+  saveenv
+</pre>
+
+<p>
+  You can now boot to FreeBSD simply by entering this command:
+</p>
+
+<pre>
+  run boot_freebsd
+</pre>
+
+<p>
+  Optionally, enter the following command to skip the pre-boot countdown.
+  Personally, using minicom, I am still able to access the U-Boot console by
+  sending a <code>BREAK</code> at the first signs of life on the serial port, so
+  I prefer not to have a delay. If you don't want to <b>risk locking yourself
+  out</b> of the U-Boot console, skip this command or replace the <code>0</code>
+  with something like <code>3</code> (it's in seconds):
+</p>
+
+<pre>
+  setenv bootdelay 0
+</pre>
+
+<p>
+  Finally, to boot directly to FreeBSD by default, enter these commands:
+</p>
+
+<pre>
+  setenv bootcmd_orig $(bootcmd)
+  setenv bootcmd 'run boot_freebsd'
+  saveenv
+  reset
+</pre>
+
+<h2>
+  <a name="growing"/>
+  Growing the Filesystem
+</h2>
+
+<p>
+  At this point, you should be looking at a fully booted multi-user FreeBSD
+  system. One of the first things you'll want to do is expand the filesystem to
+  use all the free space left over on the drive after you wrote the relatively
+  small image to it.
+</p>
+
+<p>
+  Log in as root, then enter this command to bring the system to single-user
+  mode:
+</p>
+
+<pre>
+  init 1
+</pre>
+
+Press <code>ENTER</code> to accept the default shell, then enter the following
+commands:
+
+<pre>
+  df -h /
+  mount -o ro /
+  gpart resize -i 2 da0
+  gpart resize -i 1 da0s2
+  growfs /dev/da0s2a
+  df -h /
+</pre>
+
+You should be able to see much more available space in the second
+<code>df</code> invocation. Enter the <code>reboot</code> command to reboot
+back into multi-user mode.
+
+<h2>
+  Success!
+</h2>
+
+Change the root password, edit the <code>/etc/rc.conf</code> file to set up
+networking and services, and refer to
+<a href="http://www.freebsd.org/doc/handbook/">The FreeBSD Handbook</a>
+for system administration basics.
+
+<h2>
+  <a name="build"/>
+  Building Your Own
+</h2>
+
+<p>
+  To build your own version from the FreeBSD sources, you will also need a
+  computer running the same version of FreeBSD you wish to build. If your
+  FreeBSD version is too old, a newer source tree's <code>buildworld</code> may
+  fail. I recommend first building, installing and booting the same version of
+  the source on the build system as you plan to cross-build for the router.
+  Refer to <a href="http://www.freebsd.org/doc/handbook/">The FreeBSD
+  Handbook</a> for more information about obtaining FreeBSD sources, the
+  <code>buildworld</code> process and updating your FreeBSD system.
+</p>
+
+<p>
+  Even if you use another OS, you can probably install FreeBSD 10.0 inside a
+  virtual machine, and use it to build a version of itself for your EdgeRouter
+  Lite. 
+</p>
+
+<p>
+  <a href="mkerlimage">The <code>mkerlimage</code> script</a> does everything
+  needed to build the image from a fresh copy of the FreeBSD sources. It
+  performs the following steps:
+</p>
+
+<ol>
+  <li>If <code>sys/mips/conf/ERL</code> doesn't exist, creates a simple one
+  based on the <code>OCTEON1</code> configuration.</li>
+
+  <li>Sets <code>TARGET=mips</code> and <code>TARGET_ARCH=mips64</code>, then
+  invokes <code>buildworld</code> and <code>buildkernel</code> to build the
+  base system and kernel.</li>
+
+  <li>Invokes <code>installworld</code> and <code>distribution</code> to
+  install the newly built system to a temporary root.</li>
+
+  <li>Packages the whole thing up in a ~760MByte image, consisting of an MS-DOS
+  partition for the kernel (so that U-Boot can read it), and a UFS fileystem
+  for the rest. (Note that you can always <a href="#growing">grow the
+  filesystem</a> to the size of the media after installing and booting the
+  image.)</li>
+</ol>
+
+<p>
+  Please review the script before running it. In particular, make sure that
+  you check the following:
+</p>
+
+<ul>
+  <li>The FreeBSD build system stores intermediate object files in
+  <code>/usr/obj</code> by default. For the mips64 build, this will require
+  at least 1.3GBytes of free space. Set the <code>MAKEOBJDIRPREFIX</code>
+  environment variable if you want to put them somewhere else.</li>
+
+  <li>The script itself requires at least 2.0GBytes of temporary space to hold
+  the installation root, UFS image, and final result image before compression.
+  Check the <code>temp_root</code> setting at the top of the script, or it will
+  all go to <code>/tmp</code> by default.
+
+  <li>Check that the number of jobs in the <code>make_args</code> setting at
+  the top of the script is appropriate for your build machine.</li>
+</ul>
+
+<p>
+  On success, you will have an <code>xz</code>-compressed image, ready to
+  decompress and <code>dd</code> onto the destination. Follow the
+  <a href="#install">installation instructions, above</a>.
+</p>
+
+<h2>
+  Contact
+</h2>
+
+The author of this page can be reached at
+<a href="mailto:erl@rtfm.net">erl@rtfm.net</a>.
+
+</body></html>
