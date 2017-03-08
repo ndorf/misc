@@ -3,7 +3,7 @@
 <html>
 <head>
   <title>
-    FreeBSD 10.x on Ubiquiti EdgeRouter Lite
+    FreeBSD 11.x on Ubiquiti EdgeRouter Lite
   </title>
 
   <style type="text/css">
@@ -24,14 +24,13 @@
 <body>
 
 <h1>
-  FreeBSD 10.x on Ubiquiti EdgeRouter Lite
+  FreeBSD 11.x on Ubiquiti EdgeRouter Lite
 </h1>
 
 <ul>
-  <li><strong style="color: red">Update 2014/11/19:</strong>
-    New, untested <a href="#images">images</a> available for 10.1-RELEASE
+  <li><strong style="color: red">Update 2017/03/07:</strong>
+    New image available for 11.0-RELEASE-p8
   </li>
-
   <li><strong style="color: red">Update 2014/09/21:</strong>
     New version of the <a href="#build">build script</a> creates more inodes in
     root filesystem.
@@ -56,7 +55,7 @@
 </p>
 
 <p>
-  This page provides ready-to-use images of FreeBSD 10.x-RELEASE. Thanks to the
+  This page provides ready-to-use images of recent FreeBSD releases. Thanks to the
   open nature of the EdgeRouter Lite, it's very easy to install and use these
   images; just follow the instructions below. Thanks to the fine folks at the
   FreeBSD Project, building your own is almost as easy. A script to build them,
@@ -93,11 +92,21 @@
 <h2><a name="images">Image Files</h2>
 
 <table>
+  <tr><td>2017/03/07</td>
+
+
+
+  <td><a href="images/freebsd-11.0-RELEASE-p8-ubiquiti-edgerouter-lite.image.xz"
+  >FreeBSD 11.0-RELEASE-p8-r314813</a>
+
+  <td><a href="images/freebsd-11.0-RELEASE-p8-ubiquiti-edgerouter-lite.sha512"
+  >SHA512</a></td></tr>
+
   <tr><td>2014/11/19</td>
 
   <td><a href="images/freebsd-10.1-RELEASE-ubiquiti-edgerouter-lite.image.xz"
   >FreeBSD 10.1-RELEASE-r274683</a>
-  <em style="color: red">untested</em>
+  <!--<em style="color: red">untested</em>-->
 
   <td><a href="images/freebsd-10.1-RELEASE-ubiquiti-edgerouter-lite.sha512"
   >SHA512</a></td></tr>
@@ -200,7 +209,7 @@
 
 <table>
   <tr><td><b>System</b></td>                <td><b>Command</b></td></tr>
-  <tr><td>FreeBSD 10.x</td>                 <td><code>pkg install minicom</code></td>
+  <tr><td>FreeBSD 10.0+</td>                <td><code>pkg install minicom</code></td>
   <tr><td>FreeBSD 9.x</td>                  <td><code>pkg_add -r minicom</code></td>
   <tr><td>Debian, Ubuntu, Mint, etc.</td>   <td><code>apt-get install minicom</code></td>
   <tr><td>Fedora, CentOS, RHEL, etc.</td>   <td><code>yum install minicom</code></td>
@@ -426,9 +435,8 @@ for system administration basics.
 </p>
 
 <p>
-  Even if you use another OS, you can probably install FreeBSD 10.x inside a
-  virtual machine, and use it to build a version of itself for your EdgeRouter
-  Lite. 
+  Even if you use another OS, you can install FreeBSD inside a virtual machine,
+  and use it to build a version of itself for your EdgeRouter Lite. 
 </p>
 
 <p>
