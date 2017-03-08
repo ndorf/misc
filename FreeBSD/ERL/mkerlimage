@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Updated 2014 September 21, Nathan Dorfman <na@rtfm.net>
+# Updated 2017 March 8, Nathan Dorfman <na@rtfm.net>
 # Based on the mkoctimage script from Warner Losh.
 
 # This script will build a FreeBSD image for the Ubiquiti EdgeRouter Lite.
@@ -59,7 +59,9 @@ s/^options[[:space:]]+([KDG]DB|DEADLKRES|MALLOC_DEBUG_.*)([[:space:]]*#.*)?/#&/
 s/^options[[:space:]]+(INVARIANTS?|WITNESS)(_[A-Z0-9_]+)?([[:space:]]*#.*)? /#&/
 s/^#(options[[:space:]]+OCTEON_MODEL=).*/\1OCTEON_CN50XX_PASS1/
 s/^options[[:space:]]+NO_SWAPPING([[:space:]]*#.*)?$/&\\
-options		TMPFS			# Temporary file system/
+options		TMPFS			# Temporary file system\\
+device		pf\\
+device		pflog/
 EOF
 fi
 
