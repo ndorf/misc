@@ -20,51 +20,66 @@ use warnings;
 use File::stat;
 use Getopt::Long;
 
-my @files;
+package SortedList;
 
-# Inserts into @files in sorted order:
-sub process_filename {
-    my ($name, $stat) = @_;
-    my $file = [ $name, $stat ];
+sub new {
+    my $type = shift;
+    my $cmp = (shift || sub { $_[0] cmp $_[1] });
 
-    if (!@files || $stat->mtime >= $files[$#files]->[1]->mtime) {
-        push @files, $file;
+    bless { cmp => $cmp, data => [] }, $type;
+}
+
+sub data { $_[0]->{data} }
+
+sub insert {
+    my $self = shift;
+    my $new_data = shift;
+    my $cmp = $self->{cmp};
+    my $data = $self->{data};
+    my $end = $#$data;
+
+    if (!@$data || &$cmp($new_data, $$data[$end]) >= 0) {
+        push @$data, $new_data;
         return;
     }
 
-    my ($begin, $end) = (0, $#files);
     my $idx = 0;
+    my $begin = 0;
 
-    {
-        do {
-            if ($stat->mtime < $files[$idx]->[1]->mtime) {
-                last if $stat->mtime >= $files[$idx - 1]->[1]->mtime;
-                $end = $idx;
-            }
-            else {
-                ++$idx;
-                last if $begin == $end;
-                $begin = $idx;
-            }
-            $idx = int(($begin + $end) / 2)
-        } while ($idx);
+    for (;;) {
+        if (&$cmp($new_data, $$data[$idx]) < 0) {
+            last if $idx == $begin || &$cmp($new_data, $$data[$idx - 1]) >= 0;
+            $end = $idx;
+        }
+        else {
+            $begin = $idx + 1;
+        }
+        $idx = int(($begin + $end) / 2)
     }
 
-    splice(@files, $idx, 0, $file);
+    splice @$data, $idx, 0, $new_data;
 }
+
+package main;
 
 my $long_output;
 GetOptions('0|null' => sub { $/ = "\0" },
            'l|long' => \$long_output);
 
+my $files = new SortedList(
+    sub {
+        $_[0]->[1]->mtime <=> $_[1]->[1]->mtime;
+    }
+);
+
 while(<>) {
     chomp;
     my $stat = stat $_;
-    $stat ? process_filename($_, $stat)
+    $stat ? $files->insert([ $_, $stat ])
         : warn "$_: $!\n";
 }
 
-for (@files) {
+for (@{$files->data}) {
     print scalar localtime $_->[1]->mtime, ': ' if $long_output;
     print $_->[0], $/;
 }
