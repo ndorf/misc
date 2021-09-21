@@ -90,7 +90,7 @@ make installkernel KERNCONF=${kern_conf} DESTDIR=${rootdir} || exit 6
 cat <<EOF > ${rootdir}/etc/fstab
 # Device                Mountpoint      FStype  Options         Dump    Pass#
 /dev/da0s2a             /               ufs     rw              1       1
-/dev/da0s1              /boot           msdosfs rw              0       0
+/dev/da0s1              /uboot          msdosfs rw              0       0
 tmpfs                   /tmp            tmpfs   rw,mode=1777,size=192m  0 0
 EOF
 
@@ -125,9 +125,10 @@ gpart add -b 16 -t freebsd-ufs ${md}s2
 
 newfs_msdos -F 16 /dev/${md}s1
 mount -t msdosfs /dev/${md}s1 /mnt
-mv ${rootdir}/boot/* /mnt
+cp ${rootdir}/boot/kernel/kernel /mnt
 umount /mnt
 
+mkdir ${rootdir}/uboot
 makefs -f ${min_free_inodes} -B big -s 3600m ${rootdir}.ufs ${rootdir}
 dd if=${rootdir}.ufs of=/dev/${md}s2a bs=1m || true
 
